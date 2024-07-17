@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lemon test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css">
+</head>
+
+<body>
+
+
+    <div id="app" class="container mt-2">
+
+        <h2 class="alert alert-info">{{saludo}}</h2>
+        <div>
+            <label for="">Mostrar inputs</label>
+            <input type="checkbox" data-bind="mostrarInputs">
+        </div>
+
+        (Debe rellenarse nombre y apellido para insertar)
+        <div data-show="mostrarInputs" class="mt-2">
+            <input type="text" data-bind="nombre" placeholder="Nombre">
+            <input type="text" data-bind="apellido" placeholder="Apellido">
+            <button class="btn btn-primary" data-enabled=habilitado id="addpersona">Añadir</button>
+
+            <div class="row mb-3 mt-2">
+                <span><b>Nombre:</b> {{nombre}}</span>
+                <span><b>Apellido:</b> {{apellido}}</span>
+            </div>
+        </div>
+
+
+        <h6 data-for="el of personas">{{el.nombre}} - {{el.apellido}} <button class="btn btn-danger"
+                onclick="eliminar('{{el.id}}')">x</button></h6>
+
+    </div>
+
+    <script>
+
+
+        class Lemon {
+
+            constructor(elQuerySelector, data) {
+                this._data = data;
+                this.customEventListeners = [];
+
+                this.proxyData = new Proxy(this._data, {
+                    set: (target, key, value) => {
+                        target[key] = value;
+                        this.updateView();
+                        return true;
+                    }
+                });
+
+                this.appDiv = document.querySelector(elQuerySelector);
+                this.appDiv.setAttribute("data-template", this.appDiv.innerHTML);
+
+                this.updateView();
+            }
+
+
+            //se hace get y set mediante el proxy en lugar del objeto, así nos enteramos de los cambios y aplicamos un updateView() siempre.
+            //una mejora sería introducir en este punto el concepto de DOM virtual.
+            get data() {
+                return this.proxyData;
+            }
+
+            set data(newData) {
+                Object.keys(newData).forEach(key => {
+                    this.proxyData[key] = newData[key];
+                });
+            }
+
+
+            render(template, data) {
+                // Renderizado de bucles
+                template = template.replace(/<(\w+)([^>]*?)data-for="(\w+) of (\w+)"([^>]*?)>([\s\S]*?)<\/\1>/g, (match, tag, beforeAttrs, item, list, afterAttrs, innerTemplate) => {
+                    if (!data[list]) return '';
+
+                    return data[list].map(element => {
+                        const rendered = this.render(innerTemplate, { ...data, [item]: element });
+                        return `<${tag}${beforeAttrs}${afterAttrs}>${rendered}</${tag}>`;
+                    }).join("");
+
+                });
+
+                // Renderizado de plantillas con soporte para propiedades anidadas
+                template = template.replace(/{{\s*([\w.]+)\s*}}/g, (match, key) => {
+                    const keys = key.split('.');
+                    let value = data;
+                    for (const k of keys) {
+                        value = value ? value[k] : "";
+                    }
+                    return value !== undefined ? value : "";
+                });
+
+                return template;
+            }
+
+            updateView() {
+                const template = this.appDiv.getAttribute("data-template");
+
+                // Guardar el foco actual
+                const activeElement = document.activeElement;
+                const activeElementId = activeElement && activeElement.getAttribute("data-bind");
+
+                this.appDiv.innerHTML = this.render(template, this.proxyData);
+
+                // Volver a agregar los event listeners para los inputs
+                this.bindInputs();
+
+                // Restaurar el foco
+                if (activeElementId) {
+                    const newActiveElement = document.querySelector(`input[data-bind="${activeElementId}"]`);
+                    if (newActiveElement) {
+                        newActiveElement.focus();
+                        // Restaurar la posición del cursor
+                        const value = newActiveElement.value;
+                        newActiveElement.value = "";
+                        newActiveElement.value = value;
+                    }
+                }
+
+                this.applyConditionalRendering();
+                this.applyConditionalEnabling();
+                this.attachCustomEventListeners();
+            }
+
+            bindInputs() {
+                const inputs = document.querySelectorAll("input[data-bind]"); // Seleccionar inputs con el atributo data-bind
+                inputs.forEach((input) => {
+                    const bindKey = input.getAttribute("data-bind");
+
+                    // Inicializar el valor del input
+                    if (input.type === 'checkbox') {
+                        input.checked = this.proxyData[bindKey];
+                    } else {
+                        input.value = this.proxyData[bindKey];
+                    }
+
+                    // Actualizar el objeto de datos
+                    input.addEventListener('input', () => {
+                        if (input.type === 'checkbox') {
+                            this.proxyData[bindKey] = input.checked;
+                        } else {
+                            this.proxyData[bindKey] = input.value;
+                        }
+                    });
+                });
+            }
+
+            applyConditionalRendering() {
+                const elements = document.querySelectorAll('[data-show]'); // Seleccionar elementos con el atributo data-show
+                elements.forEach((element) => {
+                    const bindKey = element.getAttribute("data-show");
+                    const value = typeof this.proxyData[bindKey] === 'function' ? this.proxyData[bindKey]() : this.proxyData[bindKey];
+                    if (value) {
+                        element.style.display = ""; // Mostrar el elemento
+                    } else {
+                        element.style.display = "none"; // Esconder el elemento
+                    }
+                });
+            }
+
+            applyConditionalEnabling() {
+                const elements = document.querySelectorAll('[data-enabled]'); // Seleccionar elementos con el atributo data-enabled
+                elements.forEach((element) => {
+                    const bindKey = element.getAttribute('data-enabled');
+                    const value = typeof this.proxyData[bindKey] === 'function' ? this.proxyData[bindKey]() : this.proxyData[bindKey];
+                    element.disabled = !value; // Habilitar o deshabilitar el elemento
+                });
+            }
+
+            addCustomEventListener(querySelector, event, callback) {
+                this.customEventListeners.push({ querySelector, event, callback });
+                document.querySelector(querySelector).addEventListener(event, callback);
+            }
+
+            attachCustomEventListeners() {
+                this.customEventListeners.forEach(({ querySelector, event, callback }) => {
+                    document.querySelector(querySelector).addEventListener(event, callback);
+                });
+            }
+
+        }
+
+
+
+        // Ejemplo de uso
+        const lemon = new Lemon('#app', {
+            saludo: "Bienvenido a Lemon!",
+            mostrarInputs: true,
+            habilitado: function () { return this.nombre != '' && this.apellido != '' },
+            nombre: '',
+            apellido: '',
+            personas: [],
+        });
+
+        lemon.addCustomEventListener('#addpersona', 'click', () => {
+            lemon.data.personas = [
+                ...lemon.data.personas,
+                {nombre: lemon.data.nombre, apellido: lemon.data.apellido, id: crypto.randomUUID()}
+        ];
+            lemon.data.nombre = '';
+            lemon.data.apellido = '';
+        });
+
+        const eliminar = id => {
+            lemon.data.personas = lemon.data.personas
+                .filter(p => p.id != id)
+        }
+
+    </script>
+
+</body>
+
+</html>
