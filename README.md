@@ -12,7 +12,7 @@ Se crea una pequeña aplicación para mostrar la librería. El comportamiento de
 
 ![](/doc/example.gif)
 
-Si se conocen herramientas como React, Angular o Vue el código no necesita mayor explicación. Se utilizan atributos personalizados como `data-show`, `data-bind`, `data-for` o `data-click`. Las variables se muestran utilizando la sintaxis de doble llave `{{variable}}`.
+Si se conocen herramientas como React, Angular o Vue el código no necesita mayor explicación. Se utilizan atributos personalizados como `data-show`, `data-bind`, `data-for`, `data-click` o `data-enabled`. Las variables se muestran utilizando la sintaxis de doble llave `{{variable}}`.
 
 ```html
 <div id="app" class="container mt-2">

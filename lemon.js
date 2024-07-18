@@ -1,5 +1,11 @@
 class Lemon {
 
+    static KEYWORDS = {
+        DATA_CLICK: 'data-click',
+        DATA_BIND: 'data-bind',
+        DATA_SHOW: 'data-show',
+    }
+
     constructor(elQuerySelector, data) {
         this._data = data;
         this.customEventListeners = [];
@@ -62,7 +68,7 @@ class Lemon {
 
         // Guardar el foco actual
         const activeElement = document.activeElement;
-        const activeElementId = activeElement && activeElement.getAttribute("data-bind");
+        const activeElementId = activeElement && activeElement.getAttribute(Lemon.KEYWORDS.DATA_BIND);
 
         this.appDiv.innerHTML = this.render(template, this.proxyData);
 
@@ -71,7 +77,7 @@ class Lemon {
 
         // Restaurar el foco
         if (activeElementId) {
-            const newActiveElement = document.querySelector(`input[data-bind="${activeElementId}"]`);
+            const newActiveElement = document.querySelector(`input[${Lemon.KEYWORDS.DATA_BIND}="${activeElementId}"]`);
             if (newActiveElement) {
                 newActiveElement.focus();
                 // Restaurar la posición del cursor
@@ -87,9 +93,9 @@ class Lemon {
     }
 
     bindInputs() {
-        const inputs = document.querySelectorAll("input[data-bind]"); // Seleccionar inputs con el atributo data-bind
+        const inputs = document.querySelectorAll(`input[${Lemon.KEYWORDS.DATA_BIND}]`);
         inputs.forEach((input) => {
-            const bindKey = input.getAttribute("data-bind");
+            const bindKey = input.getAttribute(Lemon.KEYWORDS.DATA_BIND);
 
             // Inicializar el valor del input
             if (input.type === 'checkbox') {
@@ -110,9 +116,9 @@ class Lemon {
     }
 
     bindEvents() {
-        const elements = document.querySelectorAll('[data-click]');
+        const elements = document.querySelectorAll(`[${Lemon.KEYWORDS.DATA_CLICK}]`);
         elements.forEach((element) => {
-            const clickExpression = element.getAttribute('data-click');
+            const clickExpression = element.getAttribute(Lemon.KEYWORDS.DATA_CLICK);
             const match = clickExpression.match(/^(\w+)\((.*)\)$/);
 
             if (match) {
@@ -160,9 +166,9 @@ class Lemon {
     }
 
     applyConditionalRendering() {
-        const elements = document.querySelectorAll('[data-show]'); // Seleccionar elementos con el atributo data-show
+        const elements = document.querySelectorAll(`[${Lemon.KEYWORDS.DATA_SHOW}]`); // Seleccionar elementos con el atributo data-show
         elements.forEach((element) => {
-            const bindKey = element.getAttribute("data-show");
+            const bindKey = element.getAttribute(Lemon.KEYWORDS.DATA_SHOW);
             const value = typeof this.proxyData[bindKey] === 'function' ? this.proxyData[bindKey]() : this.proxyData[bindKey];
             if (value) {
                 element.style.display = ""; // Mostrar el elemento
