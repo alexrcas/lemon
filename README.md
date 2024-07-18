@@ -1,6 +1,6 @@
 # Lemon
 
-Lemon es una pequeña librería para desarrollar aplicando el patrón MVVM o de manera reactiva hecha íntegramente en Vanilla Javascript. Lemon no es apta para producción y está lejos de ser una solución completa o terminada. Se trata únicamente de un pequeño y breve experimento con el mero objetivo del autoaprendizaje y de crear una versión hipersimplificada de las herramientas de moda en la actualidad como React o Vue, entre otras para comprender mejor su funcionamiento y el propio lenguaje.
+Lemon es una pequeña librería para desarrollar aplicando el patrón MVVM o de manera reactiva hecha íntegramente en Vanilla Javascript. Lemon no es apta para producción y está lejos de ser una solución completa o terminada. Se trata únicamente de un pequeño y breve experimento con el mero objetivo del autoaprendizaje y de crear una versión hipersimplificada de las herramientas de moda en la actualidad como React o Vue para comprender mejor su funcionamiento y el propio lenguaje.
 
 ## Ejemplo
 
@@ -12,7 +12,7 @@ Se crea una pequeña aplicación para mostrar la librería. El comportamiento de
 
 ![](/doc/example.gif)
 
-El código HMTL de la aplicación es el siguiente. Se utilizan atributos personalizados como `data-show`, `data-bind`, o `data-for` para lograr el comportamiento. Las variables se muestran utilizando la sintaxis de doble llave `{{variable}}`. El evento click se vincula con `data-click` y como muestra el ejemplo puede o no recibir parámetros.
+Si se conocen herramientas como React, Angular o Vue el código no necesita explicación. Se utilizan atributos personalizados como `data-show`, `data-bind`, `data-for` o `data-click`. Las variables se muestran utilizando la sintaxis de doble llave `{{variable}}`.
 
 ```html
 <div id="app" class="container mt-2">
@@ -43,7 +43,6 @@ El código HMTL de la aplicación es el siguiente. Se utilizan atributos persona
 </div>
 ```
 
-En cuanto al código javascript, consiste en instanciar un objeto `Lemon` que recibe el id del contenedor de la aplicación Lemon y un objeto con los datos. Como se puede observar, las variables booleanas pueden ser asignadas directamente como es el caso de `mostrarInputs` o bien funciones que pueden utilizar los propios datos del objeto como es el caso de `habilitado`. De igual forma, los eventos vinculados son una propiedad más de tipo función, como es el caso de `addPersona()` o `eliminar(id)`.
 
 ```javascript
 const lemon = new Lemon('#app', {
