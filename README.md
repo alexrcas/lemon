@@ -12,7 +12,7 @@ Se crea una pequeña aplicación para mostrar la librería. El comportamiento de
 
 ![](/doc/example.gif)
 
-El código HMTL de la aplicación es el siguiente. Se utilizan atributos personalizados como `data-show`, `data-bind`, o `data-for` para lograr el comportamiento. Las variables se muestran utilizando la sintaxis de doble llave `{{variable}}`
+El código HMTL de la aplicación es el siguiente. Se utilizan atributos personalizados como `data-show`, `data-bind`, o `data-for` para lograr el comportamiento. Las variables se muestran utilizando la sintaxis de doble llave `{{variable}}`. El evento click se vincula con `data-click` y como muestra el ejemplo puede o no recibir parámetros.
 
 ```html
 <div id="app" class="container mt-2">
@@ -27,7 +27,8 @@ El código HMTL de la aplicación es el siguiente. Se utilizan atributos persona
     <div data-show="mostrarInputs" class="mt-2">
         <input type="text" data-bind="nombre" placeholder="Nombre">
         <input type="text" data-bind="apellido" placeholder="Apellido">
-        <button class="btn btn-primary" data-enabled=habilitado id="addpersona">Añadir</button>
+        <button data-click="addPersona" class="btn btn-primary" data-enabled=habilitado
+            id="addpersona">Añadir</button>
 
         <div class="row mb-3 mt-2">
             <span><b>Nombre:</b> {{nombre}}</span>
@@ -37,14 +38,12 @@ El código HMTL de la aplicación es el siguiente. Se utilizan atributos persona
 
 
     <h6 data-for="el of personas">{{el.nombre}} - {{el.apellido}} <button class="btn btn-danger"
-            onclick="eliminar('{{el.id}}')">x</button></h6>
+            data-click="eliminar('{{el.id}}')">x</button></h6>
 
 </div>
 ```
 
-En cuanto al código javascript, consiste en instanciar un objeto `Lemon` que recibe el id del contenedor de la aplicación Lemon y un objeto con los datos. Como se puede observar, las variables booleanas pueden ser asignadas directamente como es el caso de `mostrarInputs` o bien funciones que pueden utilizar los propios datos del objeto como es el caso de `habilitado`.
-
-Los eventListeners deben ser añadidos a través del método proporcionado por el objeto `Lemon` y no directamente sobre el DOM, aunque es posible que elementos en HTML pueden referenciar simplemente a funciones en su atributo `onclick` como es el caso de la función `eliminar`.
+En cuanto al código javascript, consiste en instanciar un objeto `Lemon` que recibe el id del contenedor de la aplicación Lemon y un objeto con los datos. Como se puede observar, las variables booleanas pueden ser asignadas directamente como es el caso de `mostrarInputs` o bien funciones que pueden utilizar los propios datos del objeto como es el caso de `habilitado`. De igual forma, los eventos vinculados son una propiedad más de tipo función, como es el caso de `addPersona()` o `eliminar(id)`.
 
 ```javascript
 const lemon = new Lemon('#app', {
@@ -54,19 +53,19 @@ const lemon = new Lemon('#app', {
     nombre: '',
     apellido: '',
     personas: [],
-});
 
-lemon.addCustomEventListener('#addpersona', 'click', () => {
-    lemon.data.personas = [
-        ...lemon.data.personas,
-        {nombre: lemon.data.nombre, apellido: lemon.data.apellido, id: crypto.randomUUID()}
-];
-    lemon.data.nombre = '';
-    lemon.data.apellido = '';
-});
+    addPersona: function () {
+        lemon.data.personas = [
+            ...lemon.data.personas,
+            { nombre: lemon.data.nombre, apellido: lemon.data.apellido, id: crypto.randomUUID() }
+        ];
+        lemon.data.nombre = '';
+        lemon.data.apellido = '';
+    },
 
-const eliminar = id => {
-    lemon.data.personas = lemon.data.personas
-        .filter(p => p.id != id)
-}
+    eliminar: function (id) {
+        lemon.data.personas = lemon.data.personas
+            .filter(p => p.id != id)
+    }
+});
 ```

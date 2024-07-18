@@ -223,7 +223,7 @@
 
 
         // Ejemplo de uso
-        
+
         const lemon = new Lemon('#app', {
             saludo: "Bienvenido a Lemon!",
             mostrarInputs: true,
@@ -241,7 +241,7 @@
                 lemon.data.apellido = '';
             },
 
-            eliminar: function (id, name) {
+            eliminar: function (id) {
                 lemon.data.personas = lemon.data.personas
                     .filter(p => p.id != id)
             }
