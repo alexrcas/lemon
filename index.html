@@ -23,7 +23,8 @@
         <div data-show="mostrarInputs" class="mt-2">
             <input type="text" data-bind="nombre" placeholder="Nombre">
             <input type="text" data-bind="apellido" placeholder="Apellido">
-            <button data-click="addPersona" class="btn btn-primary" data-enabled=habilitado id="addpersona">Añadir</button>
+            <button data-click="addPersona" class="btn btn-primary" data-enabled=habilitado
+                id="addpersona">Añadir</button>
 
             <div class="row mb-3 mt-2">
                 <span><b>Nombre:</b> {{nombre}}</span>
@@ -33,7 +34,7 @@
 
 
         <h6 data-for="el of personas">{{el.nombre}} - {{el.apellido}} <button class="btn btn-danger"
-                onclick="eliminar('{{el.id}}')">x</button></h6>
+                data-click="eliminar('{{el.id}}')">x</button></h6>
 
     </div>
 
@@ -154,11 +155,43 @@
             bindEvents() {
                 const elements = document.querySelectorAll('[data-click]');
                 elements.forEach((element) => {
-                    const eventName = element.getAttribute('data-click');
-                    const eventHandler = this.proxyData[eventName];
+                    const clickExpression = element.getAttribute('data-click');
+                    const match = clickExpression.match(/^(\w+)\((.*)\)$/);
 
-                    if (typeof eventHandler === 'function') {
-                        element.addEventListener('click', eventHandler.bind(this.proxyData));
+                    if (match) {
+                        // Caso con parámetros
+                        const [_, methodName, args] = match;
+                        const eventHandler = this.proxyData[methodName];
+
+                        if (typeof eventHandler === 'function') {
+                            element.addEventListener('click', (event) => {
+                                const evaluatedArgs = args.split(',').map(arg => {
+                                    arg = arg.trim();
+                                    if (arg.startsWith("'") && arg.endsWith("'")) {
+                                        return arg.slice(1, -1);
+                                    } else if (arg.startsWith('"') && arg.endsWith('"')) {
+                                        return arg.slice(1, -1);
+                                    } else if (!isNaN(arg)) {
+                                        return Number(arg);
+                                    } else {
+                                        const keys = arg.split('.');
+                                        let value = this.proxyData;
+                                        for (const k of keys) {
+                                            value = value ? value[k] : undefined;
+                                        }
+                                        return value;
+                                    }
+                                });
+                                eventHandler.apply(this.proxyData, evaluatedArgs);
+                            });
+                        }
+                    } else {
+                        // Caso sin parámetros
+                        const eventHandler = this.proxyData[clickExpression];
+
+                        if (typeof eventHandler === 'function') {
+                            element.addEventListener('click', eventHandler.bind(this.proxyData));
+                        }
                     }
                 });
             }
@@ -190,6 +223,7 @@
 
 
         // Ejemplo de uso
+        
         const lemon = new Lemon('#app', {
             saludo: "Bienvenido a Lemon!",
             mostrarInputs: true,
@@ -197,20 +231,22 @@
             nombre: '',
             apellido: '',
             personas: [],
-            addPersona: function() {
+
+            addPersona: function () {
                 lemon.data.personas = [
                     ...lemon.data.personas,
                     { nombre: lemon.data.nombre, apellido: lemon.data.apellido, id: crypto.randomUUID() }
                 ];
                 lemon.data.nombre = '';
                 lemon.data.apellido = '';
+            },
+
+            eliminar: function (id, name) {
+                lemon.data.personas = lemon.data.personas
+                    .filter(p => p.id != id)
             }
         });
 
-        const eliminar = id => {
-            lemon.data.personas = lemon.data.personas
-                .filter(p => p.id != id)
-        }
 
     </script>
 
