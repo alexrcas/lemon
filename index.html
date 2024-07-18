@@ -167,20 +167,26 @@
                             element.addEventListener('click', (event) => {
                                 const evaluatedArgs = args.split(',').map(arg => {
                                     arg = arg.trim();
+
                                     if (arg.startsWith("'") && arg.endsWith("'")) {
                                         return arg.slice(1, -1);
-                                    } else if (arg.startsWith('"') && arg.endsWith('"')) {
-                                        return arg.slice(1, -1);
-                                    } else if (!isNaN(arg)) {
-                                        return Number(arg);
-                                    } else {
-                                        const keys = arg.split('.');
-                                        let value = this.proxyData;
-                                        for (const k of keys) {
-                                            value = value ? value[k] : undefined;
-                                        }
-                                        return value;
                                     }
+
+                                    if (arg.startsWith('"') && arg.endsWith('"')) {
+                                        return arg.slice(1, -1);
+                                    }
+                                    
+                                    if (!isNaN(arg)) {
+                                        return Number(arg);
+                                    } 
+                                    
+                                    const keys = arg.split('.');
+                                    let value = this.proxyData;
+                                    for (const k of keys) {
+                                        value = value ? value[k] : undefined;
+                                    }
+                                    
+                                    return value;
                                 });
                                 eventHandler.apply(this.proxyData, evaluatedArgs);
                             });
@@ -223,7 +229,6 @@
 
 
         // Ejemplo de uso
-
         const lemon = new Lemon('#app', {
             saludo: "Bienvenido a Lemon!",
             mostrarInputs: true,
