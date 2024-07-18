@@ -23,7 +23,7 @@
         <div data-show="mostrarInputs" class="mt-2">
             <input type="text" data-bind="nombre" placeholder="Nombre">
             <input type="text" data-bind="apellido" placeholder="Apellido">
-            <button class="btn btn-primary" data-enabled=habilitado id="addpersona">Añadir</button>
+            <button data-click="addPersona" class="btn btn-primary" data-enabled=habilitado id="addpersona">Añadir</button>
 
             <div class="row mb-3 mt-2">
                 <span><b>Nombre:</b> {{nombre}}</span>
@@ -125,7 +125,7 @@
 
                 this.applyConditionalRendering();
                 this.applyConditionalEnabling();
-                this.attachCustomEventListeners();
+                this.bindEvents()
             }
 
             bindInputs() {
@@ -151,6 +151,18 @@
                 });
             }
 
+            bindEvents() {
+                const elements = document.querySelectorAll('[data-click]');
+                elements.forEach((element) => {
+                    const eventName = element.getAttribute('data-click');
+                    const eventHandler = this.proxyData[eventName];
+
+                    if (typeof eventHandler === 'function') {
+                        element.addEventListener('click', eventHandler.bind(this.proxyData));
+                    }
+                });
+            }
+
             applyConditionalRendering() {
                 const elements = document.querySelectorAll('[data-show]'); // Seleccionar elementos con el atributo data-show
                 elements.forEach((element) => {
@@ -173,17 +185,6 @@
                 });
             }
 
-            addCustomEventListener(querySelector, event, callback) {
-                this.customEventListeners.push({ querySelector, event, callback });
-                document.querySelector(querySelector).addEventListener(event, callback);
-            }
-
-            attachCustomEventListeners() {
-                this.customEventListeners.forEach(({ querySelector, event, callback }) => {
-                    document.querySelector(querySelector).addEventListener(event, callback);
-                });
-            }
-
         }
 
 
@@ -196,15 +197,14 @@
             nombre: '',
             apellido: '',
             personas: [],
-        });
-
-        lemon.addCustomEventListener('#addpersona', 'click', () => {
-            lemon.data.personas = [
-                ...lemon.data.personas,
-                {nombre: lemon.data.nombre, apellido: lemon.data.apellido, id: crypto.randomUUID()}
-        ];
-            lemon.data.nombre = '';
-            lemon.data.apellido = '';
+            addPersona: function() {
+                lemon.data.personas = [
+                    ...lemon.data.personas,
+                    { nombre: lemon.data.nombre, apellido: lemon.data.apellido, id: crypto.randomUUID() }
+                ];
+                lemon.data.nombre = '';
+                lemon.data.apellido = '';
+            }
         });
 
         const eliminar = id => {
